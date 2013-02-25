@@ -54,7 +54,7 @@ for option, default_value in settings.items():
     if not weechat.config_is_set_plugin(option):
         weechat.config_set_plugin(option, default_value)
 
-    if weechat.config_get_plugin(option) == "":
+    if option in required_settings and weechat.config_get_plugin(option) == "":
         weechat.prnt("", weechat.prefix("error") + "irssinotifier: Please set option: %s" % option)
         weechat.prnt("", "irssinotifier: /set plugins.var.python.irssinotifier.%s STRING" % option)
 
