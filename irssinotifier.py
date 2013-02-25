@@ -44,10 +44,16 @@ weechat.register("irssinotifier", "Caspar Clemens Mierau <ccm@screenage.de>", "0
 
 settings = {
     "api_token": "",
-    "encryption_password": ""
+    "encryption_password": "",
+    "ignore": ""
 }
 
+required_settings = ["api_token", "encryption_password"]
+
 for option, default_value in settings.items():
+    if not weechat.config_is_set_plugin(option):
+        weechat.config_set_plugin(option, default_value)
+
     if weechat.config_get_plugin(option) == "":
         weechat.prnt("", weechat.prefix("error") + "irssinotifier: Please set option: %s" % option)
         weechat.prnt("", "irssinotifier: /set plugins.var.python.irssinotifier.%s STRING" % option)
@@ -62,14 +68,18 @@ def notify_show(data, bufferp, uber_empty, tagsn, isdisplayed,
     #get local nick for buffer
     mynick = weechat.buffer_get_string(bufferp,"localvar_nick")
 
-    # only notify if the message was not sent by myself
-    if (weechat.buffer_get_string(bufferp, "localvar_type") == "private") and (prefix!=mynick):
+    # get name of buffer
+    name = weechat.buffer_get_string(bufferp,"name")
+
+    # ignore buffers on ignorelist
+    if not name in weechat.config_get_plugin("ignore").split(","):
+        # only notify if the message was not sent by myself
+        if (weechat.buffer_get_string(bufferp, "localvar_type") == "private") and (prefix!=mynick):
             show_notification(prefix, prefix, message)
 
-    elif ishilight == "1":
-        buffer = (weechat.buffer_get_string(bufferp, "short_name") or
-                weechat.buffer_get_string(bufferp, "name"))
-        show_notification(buffer, prefix, message)
+        elif ishilight == "1":
+            buffer = (weechat.buffer_get_string(bufferp, "short_name") or name)
+            show_notification(buffer, prefix, message)
 
     return weechat.WEECHAT_RC_OK
 
