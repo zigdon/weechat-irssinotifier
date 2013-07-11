@@ -76,7 +76,9 @@ def notify_show(data, bufferp, uber_empty, tagsn, isdisplayed,
 def encrypt(text):
     encryption_password = weechat.config_get_plugin("encryption_password")
     command="openssl enc -aes-128-cbc -salt -base64 -A -pass env:OpenSSLEncPW"
-    output,errors = Popen(shlex.split(command),stdin=PIPE,stdout=PIPE,stderr=PIPE,env={"OpenSSLEncPW": encryption_password}).communicate(text+" ")
+    opensslenv = os.environ.copy();
+    opensslenv['OpenSSLEncPW'] = encryption_password
+    output,errors = Popen(shlex.split(command),stdin=PIPE,stdout=PIPE,stderr=PIPE,env=opensslenv).communicate(text+" ")
     output = string.replace(output,"/","_")
     output = string.replace(output,"+","-")
     output = string.replace(output,"=","")
