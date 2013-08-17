@@ -17,6 +17,8 @@
 # Requires Weechat >= 0.3.7, openssl
 # Released under GNU GPL v3
 #
+# 2013-08-16, kang@insecure.ws
+#     version 0.6: - only_away option (only notify if set away)
 # 2013-01-18, ccm <ccm@screenage.de>:
 #     version 0.5: - removed version check and legacy curl usage
 # 2012-12-27, ccm <ccm@screenage.de>:
@@ -44,7 +46,8 @@ weechat.register("irssinotifier", "Caspar Clemens Mierau <ccm@screenage.de>", "0
 
 settings = {
     "api_token": "",
-    "encryption_password": ""
+    "encryption_password": "",
+    "only_away": "",
 }
 
 for option, default_value in settings.items():
@@ -59,6 +62,11 @@ weechat.hook_print("", "irc_privmsg", "", 1, "notify_show", "")
 def notify_show(data, bufferp, uber_empty, tagsn, isdisplayed,
         ishilight, prefix, message):
 
+    #are we away?
+    away = weechat.buffer_get_string(bufferp,"localvar_away")
+    if (away == "") (and weechat.config_get_plugin("only_away") == "on"):
+        return weechat.WEECHAT_RC_OK
+        
     #get local nick for buffer
     mynick = weechat.buffer_get_string(bufferp,"localvar_nick")
 
