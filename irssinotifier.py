@@ -17,6 +17,8 @@
 # Requires Weechat >= 0.3.7, openssl
 # Released under GNU GPL v3
 #
+# 2013-08-20, balu
+#     version 0.6.1: - support for every private notification not only irc (especialy also jabber)
 # 2013-08-16, kang@insecure.ws
 #     version 0.6: - only_away option (only notify if set away)
 # 2013-01-18, ccm <ccm@screenage.de>:
@@ -62,7 +64,8 @@ for option, default_value in settings.items():
         weechat.prnt("", "irssinotifier: /set plugins.var.python.irssinotifier.%s STRING" % option)
 
 # Hook privmsg/hilights
-weechat.hook_print("", "irc_privmsg", "", 1, "notify_show", "")
+#weechat.hook_print("", "irc_privmsg", "", 1, "notify_show", "")
+weechat.hook_print("", "notify_private", "", 1, "notify_show", "")
 
 # Functions
 def notify_show(data, bufferp, uber_empty, tagsn, isdisplayed,
