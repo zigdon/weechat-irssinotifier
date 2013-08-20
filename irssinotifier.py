@@ -70,7 +70,7 @@ def notify_show(data, bufferp, uber_empty, tagsn, isdisplayed,
 
     #are we away?
     away = weechat.buffer_get_string(bufferp,"localvar_away")
-    if (away == "") (and weechat.config_get_plugin("only_away") == "on"):
+    if (away == "" and weechat.config_get_plugin("only_away") == "on"):
         return weechat.WEECHAT_RC_OK
         
     #get local nick for buffer
