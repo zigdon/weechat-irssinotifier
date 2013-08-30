@@ -64,7 +64,7 @@ for option, default_value in settings.items():
         weechat.prnt("", "irssinotifier: /set plugins.var.python.irssinotifier.%s STRING" % option)
 
 # Hook privmsg/hilights
-#weechat.hook_print("", "irc_privmsg", "", 1, "notify_show", "")
+weechat.hook_print("", "irc_privmsg", "", 1, "notify_show", "")
 weechat.hook_print("", "notify_private", "", 1, "notify_show", "")
 
 # Functions
