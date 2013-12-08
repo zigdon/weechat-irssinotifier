@@ -17,6 +17,8 @@
 # Requires Weechat >= 0.3.7, openssl
 # Released under GNU GPL v3
 #
+# 2013-12-07, zigdon
+#     version 0.6.2: - support ignoring all buffers in a server, add help text.
 # 2013-08-20, balu
 #     version 0.6.1: - support for every private notification not only irc (especialy also jabber)
 # 2013-08-16, kang@insecure.ws
@@ -39,29 +41,38 @@
 #                    injection)
 #                  - correct split of nick and channel name in a hilight
 # 2012-10-26, ccm <ccm@screenage.de>:
-#     version 0.1: - initial release - working proof of concept 
+#     version 0.1: - initial release - working proof of concept
 
 import weechat, string, os, urllib, urllib2, shlex
 from subprocess import Popen, PIPE
 
-weechat.register("irssinotifier", "Caspar Clemens Mierau <ccm@screenage.de>", "0.5", "GPL3", "irssinotifier: Send push notifications to Android's IrssiNotifier about your private message and highligts.", "", "")
+weechat.register("irssinotifier",
+                 "Caspar Clemens Mierau <ccm@screenage.de>",
+                 "0.6.2",
+                 "GPL3",
+                 "irssinotifier: Send push notifications to Android's IrssiNotifier about your private message and highligts.",
+                 "",
+                 "")
 
 settings = {
-    "api_token": "",
-    "encryption_password": "",
-    "only_away": "",
-    "ignore": ""
+    "api_token": "API token from http://irssinotifier.appspot.com.",
+    "encryption_password": "Your password, same as on the phone's client.",
+    "only_away": "Only send notifications when set as away.",
+    "ignore_buffers": "Comma separated list of buffers to ignore.",
+    "ignore_servers": "Comma separated list of servers to ignore.",
 }
 
 required_settings = ["api_token", "encryption_password"]
 
-for option, default_value in settings.items():
+for option, help_text in settings.items():
     if not weechat.config_is_set_plugin(option):
-        weechat.config_set_plugin(option, default_value)
+        weechat.config_set_plugin(option, "")
 
     if option in required_settings and weechat.config_get_plugin(option) == "":
         weechat.prnt("", weechat.prefix("error") + "irssinotifier: Please set option: %s" % option)
         weechat.prnt("", "irssinotifier: /set plugins.var.python.irssinotifier.%s STRING" % option)
+
+    weechat.config_set_desc_plugin(option, help_text)
 
 # Hook privmsg/hilights
 weechat.hook_print("", "irc_privmsg", "", 1, "notify_show", "")
@@ -75,18 +86,22 @@ def notify_show(data, bufferp, uber_empty, tagsn, isdisplayed,
     away = weechat.buffer_get_string(bufferp,"localvar_away")
     if (away == "" and weechat.config_get_plugin("only_away") == "on"):
         return weechat.WEECHAT_RC_OK
-        
+
     #get local nick for buffer
     mynick = weechat.buffer_get_string(bufferp,"localvar_nick")
 
-    # get name of buffer
+    # get buffer info
     name = weechat.buffer_get_string(bufferp,"name")
+    server = weechat.buffer_get_string(bufferp, "localvar_server")
+    channel = weechat.buffer_get_string(bufferp, "localvar_channel")
 
-    # ignore buffers on ignorelist
-    if not name in weechat.config_get_plugin("ignore").split(","):
+    # ignore buffers on ignorelists
+    if not (server in weechat.config_get_plugin("ignore_servers") or
+        name in weechat.config_get_plugin("ignore_buffers").split(",")):
+
         # only notify if the message was not sent by myself
         if (weechat.buffer_get_string(bufferp, "localvar_type") == "private") and (prefix!=mynick):
-            show_notification(prefix, prefix, message)
+            show_notification(channel, prefix, message)
 
         elif ishilight == "1":
             buffer = (weechat.buffer_get_string(bufferp, "short_name") or name)
