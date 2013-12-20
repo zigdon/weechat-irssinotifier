@@ -75,19 +75,24 @@ for option, help_text in settings.items():
     weechat.config_set_desc_plugin(option, help_text)
 
 # Hook privmsg/hilights
-weechat.hook_print("", "irc_privmsg", "", 1, "notify_show", "")
+weechat.hook_print("", "notify_message", "", 1, "notify_show", "")
 weechat.hook_print("", "notify_private", "", 1, "notify_show", "")
 
 # Functions
 def notify_show(data, bufferp, uber_empty, tagsn, isdisplayed,
         ishilight, prefix, message):
 
-    #are we away?
+    # irc PMs are caught by notify_private, but we need notify_message to
+    # capture hilights in channels.
+    if 'notify_message' in tagsn and not ishilight:
+        return weechat.WEECHAT_RC_OK
+
+    # are we away?
     away = weechat.buffer_get_string(bufferp,"localvar_away")
     if (away == "" and weechat.config_get_plugin("only_away") == "on"):
         return weechat.WEECHAT_RC_OK
 
-    #get local nick for buffer
+    # get local nick for buffer
     mynick = weechat.buffer_get_string(bufferp,"localvar_nick")
 
     # get buffer info
