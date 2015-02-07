@@ -17,6 +17,8 @@
 # Requires Weechat >= 0.3.7, openssl
 # Released under GNU GPL v3
 #
+# 2015-02-07, zigdon
+#     version 0.6.3: - fix channel highlits in weechat >= 1.0
 # 2013-12-07, zigdon
 #     version 0.6.2: - support ignoring all buffers in a server, add help text.
 # 2013-08-20, balu
@@ -48,7 +50,7 @@ from subprocess import Popen, PIPE
 
 weechat.register("irssinotifier",
                  "Caspar Clemens Mierau <ccm@screenage.de>",
-                 "0.6.2",
+                 "0.6.3",
                  "GPL3",
                  "irssinotifier: Send push notifications to Android's IrssiNotifier about your private message and highligts.",
                  "",
@@ -101,14 +103,14 @@ def notify_show(data, bufferp, uber_empty, tagsn, isdisplayed,
     channel = weechat.buffer_get_string(bufferp, "localvar_channel")
 
     # ignore buffers on ignorelists
-    if not (server in weechat.config_get_plugin("ignore_servers") or
+    if not (server in weechat.config_get_plugin("ignore_servers").split(",") or
         name in weechat.config_get_plugin("ignore_buffers").split(",")):
 
         # only notify if the message was not sent by myself
         if (weechat.buffer_get_string(bufferp, "localvar_type") == "private") and (prefix!=mynick):
             show_notification(channel, prefix, message)
 
-        elif ishilight == "1":
+        elif ishilight:
             buffer = (weechat.buffer_get_string(bufferp, "short_name") or name)
             show_notification(buffer, prefix, message)
 
